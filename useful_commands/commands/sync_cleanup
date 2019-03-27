@@ -1,0 +1,3 @@
+cd /root/photoframe
+dos2unix frame.py
+chmod +x frame.py

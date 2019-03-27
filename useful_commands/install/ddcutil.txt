@@ -1,0 +1,11 @@
+git clone https://github.com/rockowitz/ddcutil.git
+cd ddcutil
+
+sudo apt-get install autoconf automake autotools-dev libtool libperl-dev libgtk2.0-dev libudev-dev libusb-1.0-0-dev
+
+./autogen.sh
+./configure
+make
+sudo make install
+
+config.txt --> dtparam=i2c2_iknowwhatimdoing

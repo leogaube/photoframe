@@ -1,0 +1,21 @@
+cd /root/photoframe
+put ../frame.py
+
+cd modules
+put ../modules/helper.py
+put ../modules/slideshow.py
+put ../modules/display.py
+put ../modules/settings.py
+
+cd ..
+cd services
+put ../services/svc_googlephotos.py
+
+cd ..
+cd static
+cd js
+put ../static/js/main.js
+put ../static/js/index.js
+cd ..
+cd template
+put ../static/template/main.html

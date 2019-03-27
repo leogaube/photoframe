@@ -1,0 +1,2 @@
+sudo service frame stop
+sudo /root/photoframe/frame.py --debug

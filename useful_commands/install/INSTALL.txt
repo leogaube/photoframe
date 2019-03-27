@@ -1,0 +1,14 @@
+Rufus! (Etcher not working?!)
+
+copy wifi-config, ssh, http-auth
+
+raspi-config --> rotate_display=1, dtparam=i2c2_iknowwhatimdoing
+
+sudo adduser leo
+sudo adduser leo sudo
+logout
+
+ssh leo@192.168.178.58
+sudo deluser --remove-home pi
+
+sudo chown -R leo:leo /root

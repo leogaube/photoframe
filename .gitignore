@@ -1,3 +1,10 @@
+# Ignore raspbian images
+*.img
+
+# Ignore tools
+rufus-3.4p.exe
+rufus.ini
+
 # Ignore the auth
 oauth.json
 extras/config.txt.*
