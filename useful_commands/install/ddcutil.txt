@@ -9,3 +9,17 @@ make
 sudo make install
 
 config.txt --> dtparam=i2c2_iknowwhatimdoing
+
+
+commands:
+
+sudo ddcutil capabilities 	--> all monitor features listed
+sudo ddcutil setvcp 10 x 	--> set brightness to x
+sudo ddcutil setvcp 12 x 	--> set contrast to x
+sudo ddcutil setvcp 14 x	--> set predefined color temperature modes (see capabilites for supported values)
+sudo ddcutil setvcp 16 0	--> video red gain
+sudo ddcutil setvcp 18 0	--> video green gain
+sudo ddcutil setvcp 1A 0	--> video blue gain
+
+
+sudo ddcutil setvcp 04 1	--> restore default values
