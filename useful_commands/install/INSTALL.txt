@@ -12,3 +12,6 @@ ssh leo@192.168.178.58
 sudo deluser --remove-home pi
 
 sudo chown -R leo:leo /root
+
+#for development:
+sudo apt-get install dos2unix
