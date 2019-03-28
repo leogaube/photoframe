@@ -9,6 +9,7 @@ put ../modules/settings.py
 
 cd ..
 cd services
+put ../services/base.py
 put ../services/svc_googlephotos.py
 
 cd ..
