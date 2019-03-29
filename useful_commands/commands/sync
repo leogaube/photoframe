@@ -11,6 +11,7 @@ cd ..
 cd services
 put ../services/base.py
 put ../services/svc_googlephotos.py
+put ../services/svc_picasaweb.py
 
 cd ..
 cd static
