@@ -110,7 +110,6 @@ class helper:
 				logging.debug('Portrait image, reframing (padding required %dpx)' % padding)
 			else:
 				resizeString = '%sx%s'
-
 				logging.debug('Image is fullscreen, no reframing needed')
 				return False
 

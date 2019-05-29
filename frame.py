@@ -30,6 +30,7 @@ import threading
 import argparse
 import shutil
 import traceback
+import re
 
 from modules.remember import remember
 from modules.shutdown import shutdown
@@ -51,6 +52,7 @@ parser.add_argument('--listen', default="0.0.0.0", help="Address to listen on")
 parser.add_argument('--debug', action='store_true', default=False, help='Enable loads more logging')
 parser.add_argument('--basedir', default=None, help='Change the root folder of photoframe')
 parser.add_argument('--emulate', action='store_true', help='Run as an app without root access or framebuffer')
+parser.add_argument('--size', default='1280x720', help='Set the resolution to be used when emulating the framebuffer')
 cmdline = parser.parse_args()
 
 if cmdline.debug:
@@ -172,15 +174,7 @@ def show_error(e):
     '''
   return message, code
 
-@app.route('/debug', methods=['GET'], defaults={'all' : False, 'stack' : False})
-@app.route('/debug/all', methods=['GET'], defaults={'all' : True, 'stack' : False})
-@app.route('/debug/stacktrace', methods=['GET'], defaults={'all' : False, 'stack' : True})
-def show_logs(all, stack):
-  # Special URL, we simply try to extract latest 100 lines from syslog
-  # and filter out frame messages. These are shown so the user can
-  # add these to issues.
-  stats = None
-  if stack:
+def debug_stacktrace():
     title = 'Stacktrace of all running threads'
     lines = []
     for threadId, stack in sys._current_frames().items():
@@ -189,28 +183,45 @@ def show_logs(all, stack):
             lines.append('File: "%s", line %d, in %s' % (filename, lineno, name))
             if line:
                 lines.append("  %s" % (line.strip()))
-  else:
+    return (title, lines, None)
+
+def debug_logfile(all=False):
     stats = os.stat('/var/log/syslog')
-    cmd = 'grep "photoframe\[" /var/log/syslog | tail -n 100'
-    title = 'Last 100 lines from the log'
+    cmd = 'grep -a "photoframe\[" /var/log/syslog | tail -n 100'
+    title = 'Last 100 lines from the photoframe log'
     if all:
-      title = 'Last 100 lines from the log (unfiltered)'
+      title = 'Last 100 lines from the system log (/var/log/syslog)'
       cmd = 'tail -n 100 /var/log/syslog'
     lines = subprocess.check_output(cmd, shell=True)
     if lines:
       lines = lines.splitlines()
+    suffix = '(size of logfile %d bytes, created %s)' % (stats.st_size, datetime.datetime.fromtimestamp(stats.st_ctime).strftime('%c'))
+    return (title, lines, suffix)
 
-  message = '''
-  <html><head><title>Internal debugging</title></head><body style="font-family: Verdana"><h1>%s</h1>
-  <pre style="margin: 15pt; padding: 10pt; border: 1px solid; background-color: #eeeeee">''' % title
-  if lines:
-    for line in lines:
-      message += line + '\n'
-  else:
-    message += 'Logs unavailable, perhaps it was archived recently (size will be less than 5000 bytes)'
-  message += '''</pre>'''
-  if stats:
-    message += '(size of logfile %d bytes, created %s)' % (stats.st_size, datetime.datetime.fromtimestamp(stats.st_ctime).strftime('%c'))
+@app.route('/debug', methods=['GET'])
+def show_logs():
+  # Special URL, we simply try to extract latest 100 lines from syslog
+  # and filter out frame messages. These are shown so the user can
+  # add these to issues.
+  report = []
+  report.append(debug_logfile(False))
+  report.append(debug_logfile(True))
+  report.append(debug_stacktrace())
+
+  message = '<html><head><title>Photoframe Log Report</title></head><body style="font-family: Verdana">'
+  message = '''<h1>Photoframe Log report</h1><div style="margin: 15pt; padding 10pt">This page is intended to be used when you run into issues which cannot be resolved by the messages displayed on the frame. Please save and attach this information
+  when you <a href="https://github.com/mrworf/photoframe/issues/new">create a new issue</a>.<br><br>Thank you for helping making this project better &#128517;</div>'''
+  for item in report:
+    message += '<h1>%s</h1><pre style="margin: 15pt; padding: 10pt; border: 1px solid; background-color: #eeeeee">' % item[0]
+    if item[1]:
+      for line in item[1]:
+        message += line + '\n'
+    else:
+      message += '--- Data unavailable ---'
+    message += '''</pre>'''
+    if item[2] is not None:
+      message += item[2]
+
   message += '</body></html>'
   return message, 200
 
@@ -521,7 +532,13 @@ def services_operations(action):
 
 settings = settings()
 drivers = drivers()
-display = display(cmdline.emulate)
+
+m = re.search('([0-9]+)x([0-9]+)', cmdline.size)
+if m is None:
+    logging.error('--size has to be WIDTHxHEIGHT')
+    sys.exit(1)
+
+display = display(cmdline.emulate, int(m.group(1)), int(m.group(2)))
 
 if not settings.load():
   # First run, grab display settings from current mode
@@ -554,7 +571,7 @@ while True:
 
   if settings.get('local-ip') is None:
     logging.error('You must have functional internet connection to use this app')
-    display.message('No internet')
+    display.message('No internet\n\nCheck wifi-config.txt or cable')
     time.sleep(10)
   else:
     break
