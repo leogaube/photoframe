@@ -1,2 +1,3 @@
+cd /root/photoframe
 sudo service frame stop
-sudo /root/photoframe/frame.py
+sudo ./frame.py

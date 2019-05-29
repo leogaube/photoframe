@@ -6,18 +6,27 @@ put ../modules/helper.py
 put ../modules/slideshow.py
 put ../modules/display.py
 put ../modules/settings.py
+put ../modules/servicemanager.py
+put ../modules/cachemanager.py
+#put ../modules/joystick.py
+#put ../modules/ddc_control.py
+#put ../modules/rotary_encoder.py
 
 cd ..
 cd services
 put ../services/base.py
 put ../services/svc_googlephotos.py
-put ../services/svc_picasaweb.py
+put ../services/svc_simpleurl.py
+put ../services/svc_usb.py
 
 cd ..
 cd static
 cd js
 put ../static/js/main.js
 put ../static/js/index.js
+cd ..
+cd css
+put ../static/css/index.css
 cd ..
 cd template
 put ../static/template/main.html
