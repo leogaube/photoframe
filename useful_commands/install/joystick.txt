@@ -1,0 +1,6 @@
+For PS3-Controller bluetooth setup, follow steps:
+https://custom-build-robots.com/raspberry-pi-elektronik/playstation-ps3-controller-bluetooth-einrichten-am-raspberry-pi-mit-raspbian/9909
+
+sudo apt install python-pygame
+
+make sure 'frame.py' calls 'Joystick(slideshow.createEvent)' at some point
