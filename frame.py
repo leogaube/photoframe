@@ -45,6 +45,7 @@ from modules.drivers import drivers
 from modules.servicemanager import ServiceManager
 from modules.sysconfig import sysconfig
 from modules.cachemanager import CacheManager
+from modules.joystick import Joystick
 
 parser = argparse.ArgumentParser(description="PhotoFrame - A RaspberryPi based digital photoframe", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--logfile', default=None, help="Log to file instead of stdout")
@@ -611,6 +612,7 @@ timekeeper.setAmbientSensitivity(settings.getUser('autooff-lux'), settings.getUs
 timekeeper.setPowermode(settings.getUser('powersave'))
 colormatch.setUpdateListener(timekeeper.sensorListener)
 
+joystick = Joystick(slideshow.createEvent)
 powermanagement = shutdown(settings.getUser('shutdown-pin'))
 
 if __name__ == "__main__":
