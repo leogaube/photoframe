@@ -110,3 +110,6 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# from developer leogaube
+/useful_commands
