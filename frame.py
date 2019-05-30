@@ -46,6 +46,7 @@ from modules.servicemanager import ServiceManager
 from modules.sysconfig import sysconfig
 from modules.cachemanager import CacheManager
 from modules.joystick import Joystick
+from modules.ddcutil import MonitorControl
 
 parser = argparse.ArgumentParser(description="PhotoFrame - A RaspberryPi based digital photoframe", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--logfile', default=None, help="Log to file instead of stdout")
@@ -601,7 +602,7 @@ display.setConfigPage('http://%s:%d/' % (settings.get('local-ip'), 7777))
 
 # Prep random
 random.seed(long(time.clock()))
-colormatch = colormatch(settings.get('colortemp-script'), 2700) # 2700K = Soft white, lowest we'll go
+colormatch = colormatch(settings.get('colortemp-script'), min=3000, max=9500) # 2700K = Soft white, lowest we'll go
 slideshow = slideshow(display, settings, colormatch)
 timekeeper = timekeeper(display.enable, slideshow.start)
 slideshow.setQueryPower(timekeeper.getDisplayOn)
@@ -611,6 +612,7 @@ timekeeper.setConfiguration(settings.getUser('display-on'), settings.getUser('di
 timekeeper.setAmbientSensitivity(settings.getUser('autooff-lux'), settings.getUser('autooff-time'))
 timekeeper.setPowermode(settings.getUser('powersave'))
 colormatch.setUpdateListener(timekeeper.sensorListener)
+colormatch.setUpdateListener(MonitorControl.adjust)
 
 joystick = Joystick(slideshow.createEvent)
 powermanagement = shutdown(settings.getUser('shutdown-pin'))

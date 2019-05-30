@@ -31,7 +31,7 @@ class colormatch(Thread):
 		self.void = open(os.devnull, 'wb')
 		self.min = min
 		self.max = max
-		self.listener = None
+		self.listeners = []
 		self.allowAdjust = False
 		if self.script is not None and self.script != '':
 			self.hasScript = os.path.exists(self.script)
@@ -60,7 +60,7 @@ class colormatch(Thread):
 		return self.lux
 
 	def setUpdateListener(self, listener):
-		self.listener = listener
+		self.listeners.append(listener)
 
 	def adjust(self, filename, filenameTemp, temperature=None):
 		if not self.allowAdjust or not self.hasScript:
@@ -172,10 +172,11 @@ class colormatch(Thread):
 					self.temperature = 0
 					self.lux = 0
 
-				if self.listener:
-					self.listener(self.temperature, self.lux)
+				if len(self.listeners) != 0:
+					for listener in self.listeners:
+						listener(self.temperature, self.lux)
 
-				time.sleep(1)
+				time.sleep(0.5)
 		else:
 			logging.info('No TCS34725 color sensor detected, will not compensate for ambient color temperature')
 			self.sensor = False
