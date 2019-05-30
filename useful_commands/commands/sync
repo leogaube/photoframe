@@ -7,9 +7,10 @@ put ../modules/slideshow.py
 put ../modules/display.py
 put ../modules/settings.py
 put ../modules/servicemanager.py
+put ../modules/colormatch.py
 put ../modules/cachemanager.py
-#put ../modules/joystick.py
-#put ../modules/ddc_control.py
+put ../modules/joystick.py
+put ../modules/ddc_control.py
 #put ../modules/rotary_encoder.py
 
 cd ..

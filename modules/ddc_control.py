@@ -22,7 +22,7 @@ def isDDCinstalled():
   #TODO test for ddcutil
 
 def getBrightness():
-  output = subprocess.check_output(["ddcutil", "getvcp", "10"])
+  output = subprocess.check_output(["sudo", "ddcutil", "getvcp", "10"])
   try:
     brightness = int(output.split("current value =")[1].split(",")[0].strip())
     return brightness
@@ -31,7 +31,7 @@ def getBrightness():
     return None
 
 def getContrast():
-  output = subprocess.check_output(["ddcutil", "getvcp", "12"])
+  output = subprocess.check_output(["sudo", "ddcutil", "getvcp", "12"])
   try:
     contrast = int(output.split("current value =")[1].split(",")[0].strip())
     return contrast
@@ -44,7 +44,7 @@ def increaseBrightness(step=10):
   if current_value is None:
     return
   new_value = max(0, min(current_value + step, 100))
-  rc = subprocess.call(["ddcutil", "setvcp", "10", str(new_value)])
+  rc = subprocess.call(["sudo", "ddcutil", "setvcp", "10", str(new_value)])
   logging.debug("new brightness value: %d"%new_value)
 
 def decreaseBrightness(step=10):
@@ -57,7 +57,7 @@ def increaseContrast(step=10):
   if current_value is None:
     return
   new_value = max(0, min(current_value + step, 100))
-  rc = subprocess.call(["ddcutil", "setvcp", "12", str(new_value)])
+  rc = subprocess.call(["sudo", "ddcutil", "setvcp", "12", str(new_value)])
   logging.debug("new contrast value: %d"%new_value)
 
 def decreaseContrast(step=10):
