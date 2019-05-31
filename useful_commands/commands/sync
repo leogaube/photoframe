@@ -8,6 +8,7 @@ put ../modules/display.py
 put ../modules/settings.py
 put ../modules/servicemanager.py
 put ../modules/colormatch.py
+put ../modules/timekeeper.py
 put ../modules/cachemanager.py
 put ../modules/joystick.py
 put ../modules/ddcutil.py

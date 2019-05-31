@@ -101,7 +101,7 @@ class timekeeper(Thread):
 		elif self.standby and (self.ignoreSchedule or not self.scheduleOff) and (self.ignoreSensor or not self.ambientOff):
 			self.standby = False
 			self.cbPower(True)
-			self.cbSlideshow()
+			self.cbSlideshow(blank=True)
 
 	def run(self):
 		while True:

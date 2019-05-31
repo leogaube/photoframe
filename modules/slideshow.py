@@ -81,12 +81,15 @@ class slideshow:
 
   def start(self, blank=False):
     if blank:
+      self.imageOnScreen = False
       self.display.clear()
 
     if self.thread is None:
       self.thread = threading.Thread(target=self.presentation)
       self.thread.daemon = True
       self.thread.start()
+    else:
+      self.delayer.set()
 
   def trigger(self):
     logging.debug('Causing immediate showing of image')
