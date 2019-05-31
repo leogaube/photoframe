@@ -29,6 +29,7 @@ import subprocess
 from modules.remember import remember
 from modules.helper import helper
 from modules.cachemanager import CacheManager
+from modules.ddcutil import MonitorControl
 
 class slideshow:
   SHOWN_IP = True
@@ -68,7 +69,8 @@ class slideshow:
   def getColorInformation(self):
     return {
       'temperature':self.colormatch.getTemperature(),
-      'lux':self.colormatch.getLux()
+      'lux':self.colormatch.getLux(),
+      'monitorBrightness':(MonitorControl.getBrightness() + MonitorControl.getContrast()) // 2
       }
 
   def setServiceManager(self, services):

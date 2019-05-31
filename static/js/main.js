@@ -63,6 +63,7 @@ function updateAmbient() {
     
     $('#colortemp').text(data['temperature'].toFixed(0));
     $('#lux').text(data['lux'].toFixed(2));
+    $('#monitorBrightness').text(data['monitorBrightness'].toFixed(0));
     setTimeout(updateAmbient, 5000);
   });
 }
