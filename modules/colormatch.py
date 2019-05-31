@@ -20,6 +20,8 @@ import os
 import subprocess
 import logging
 
+from math import exp
+
 class colormatch(Thread):
 	def __init__(self, script, min = None, max = None):
 		Thread.__init__(self)
@@ -60,6 +62,13 @@ class colormatch(Thread):
 	def getLux(self):
 		return self.lux
 
+	def getMonTemp(self):
+		if self.temperature is None:
+			return None
+		x = self.temperature
+
+		return 6000/(1+exp((6500-x)/1500))+3500
+
 	def setUpdateListener(self, listener):
 		self.listeners.append(listener)
 
@@ -71,7 +80,8 @@ class colormatch(Thread):
 			logging.debug('Temperature is %s and sensor is %s', repr(self.temperature), repr(self.sensor))
 			return False
 		if temperature is None:
-			temperature = self.temperature
+			temperature = self.getMonTemp()
+			logging.info("%d --> %d"%(self.temperature, temperature))
 		if self.min is not None and temperature < self.min:
 			logging.debug('Actual color temp measured is %d, but we cap to %dK' % (temperature, self.min))
 			temperature = self.min

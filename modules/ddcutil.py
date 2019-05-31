@@ -17,15 +17,13 @@
 import logging
 import subprocess
 
-from math import sqrt
-
 class MonitorControl:
   BUS = None
 
   BRIGHTNESS = None
   CONTRAST = None
 
-  SENSITIVITY = 6.
+  SENSITIVITY = 2.
 
   @staticmethod
   def isDDCinstalled():
@@ -45,14 +43,14 @@ class MonitorControl:
 
   @staticmethod
   def increaseSensitivity():
-    if MonitorControl.SENSITIVITY < 10:
-      MonitorControl.SENSITIVITY += 0.5
+    if MonitorControl.SENSITIVITY < 5:
+      MonitorControl.SENSITIVITY += 0.1
     return MonitorControl.SENSITIVITY
 
   @staticmethod
   def decreaseSensitivity():
-    if MonitorControl.SENSITIVITY > 2.5:
-      MonitorControl.SENSITIVITY -= 0.5
+    if MonitorControl.SENSITIVITY > 1.:
+      MonitorControl.SENSITIVITY -= 0.1
     return MonitorControl.SENSITIVITY
     
   @staticmethod
@@ -120,7 +118,7 @@ class MonitorControl:
     # lux = 25  --> brightness = 0; contrast = 50;
     # lux = 100 --> brightness = 0; contrast = 100;
     # lux = 400 --> brightness = 100; contrast = 100;
-    y = MonitorControl.SENSITIVITY*sqrt(int(lux)) 
+    y = MonitorControl.SENSITIVITY*int(lux)**(2./3.)
 
     contrast = min(int(y), 100)
     brightness = min(max(0, int(y-100)), 100)
