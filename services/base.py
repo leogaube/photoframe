@@ -638,7 +638,7 @@ class BaseService:
       self._MEMORY.append(h)
     # save memory
     if (len(self._MEMORY) % 20) == 0:
-      logging.info('Interim saving of memory every 20 entries')
+      logging.debug('Interim saving of memory every 20 entries')
       with open(os.path.join(self._DIR_MEMORY, '%s.json' % self._MEMORY_KEY), 'w') as f:
         json.dump(self._MEMORY, f)
 

@@ -451,7 +451,7 @@ class ServiceManager:
       self._HISTORY.append(svc)
 
   def memoryForget(self, forgetHistory=False):
-    logging.info("Photoframe's memory was reset. Already displayed images will be shown again!")
+    logging.info("Photoframe's memory was reset.")
     for key in self._SERVICES:
       svc = self._SERVICES[key]["service"]
       svc.memoryForget(forgetHistory=forgetHistory)
