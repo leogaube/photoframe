@@ -33,6 +33,7 @@ class colormatch(Thread):
 		self.max = max
 		self.listeners = []
 		self.allowAdjust = False
+		self.ready = False
 		if self.script is not None and self.script != '':
 			self.hasScript = os.path.exists(self.script)
 		else:
@@ -155,6 +156,7 @@ class colormatch(Thread):
 			bus.write_byte(0x29, 0x80|0x00) # 0x00 = ENABLE register
 			bus.write_byte(0x29, 0x01|0x02) # 0x01 = Power on, 0x02 RGB sensors enabled
 			bus.write_byte(0x29, 0x80|0x14) # Reading results start register 14, LSB then MSB
+
 			self.sensor = True
 			logging.debug('TCS34725 detected, starting polling loop')
 			while True:
@@ -172,11 +174,14 @@ class colormatch(Thread):
 					self.temperature = 0
 					self.lux = 0
 
-				if len(self.listeners) != 0:
+				if len(self.listeners) != 0 and self.ready:
 					for listener in self.listeners:
 						listener(self.temperature, self.lux)
+				# skip first reading, because it is bad
+				else:
+					self.ready = True
 
-				time.sleep(0.5)
+				time.sleep(1)
 		else:
 			logging.info('No TCS34725 color sensor detected, will not compensate for ambient color temperature')
 			self.sensor = False

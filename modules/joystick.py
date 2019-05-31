@@ -13,10 +13,8 @@ class Joystick(Thread):
 
 		self.createSlideshowEvent = createEventFunc
 
-		self.increaseBrightness = MonitorControl.increaseBrightness
-		self.decreaseBrightness = MonitorControl.decreaseBrightness
-		self.increaseContrast = MonitorControl.increaseContrast
-		self.decreaseContrast = MonitorControl.decreaseContrast
+		self.increaseSensitivity = MonitorControl.increaseSensitivity
+		self.decreaseSensitivity = MonitorControl.decreaseSensitivity
 
 		# joystick reconnect required after 10 min without any input
 		self.joystickReconnectTimeout = 600
@@ -54,13 +52,15 @@ class Joystick(Thread):
 					self.createSlideshowEvent("nextAlbum")
 
 				elif event.button == 13:
-					self.increaseBrightness()
+					sensitivity = self.increaseSensitivity()
+					logging.info(sensitivity)
 				elif event.button == 14:
-					self.decreaseBrightness()
-				elif event.button == 15:
-					self.decreaseContrast()
-				elif event.button == 16:
-					self.increaseContrast()
+					sensitivity = self.decreaseSensitivity()
+					logging.info(sensitivity)
+				#elif event.button == 15:
+				#	self.decreaseContrast()
+				#elif event.button == 16:
+				#	self.increaseContrast()
 
 				self.lastEvent = time.time()
 				logging.debug("%d Button pressed!"%event.button)

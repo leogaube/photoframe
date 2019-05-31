@@ -21,14 +21,16 @@ from math import sqrt
 
 class MonitorControl:
   BUS = None
+
   BRIGHTNESS = None
   CONTRAST = None
+
+  SENSITIVITY = 6.
 
   @staticmethod
   def isDDCinstalled():
     pass
     #TODO test for ddcutil
-
 
   @staticmethod
   def detectBus():
@@ -40,8 +42,19 @@ class MonitorControl:
         logging.debug("unable to retrieve display bus")
       
     return MonitorControl.BUS
-    
 
+  @staticmethod
+  def increaseSensitivity():
+    if MonitorControl.SENSITIVITY < 10:
+      MonitorControl.SENSITIVITY += 0.5
+    return MonitorControl.SENSITIVITY
+
+  @staticmethod
+  def decreaseSensitivity():
+    if MonitorControl.SENSITIVITY > 2.5:
+      MonitorControl.SENSITIVITY -= 0.5
+    return MonitorControl.SENSITIVITY
+    
   @staticmethod
   def getBrightness():
     if MonitorControl.BRIGHTNESS is None:
@@ -102,30 +115,37 @@ class MonitorControl:
 
   @staticmethod
   def adjust(temperature, lux):
+    # y = 10*sqrt(int(lux))
     # lux = 10  --> brightness = 0; contrast = 30;
     # lux = 25  --> brightness = 0; contrast = 50;
     # lux = 100 --> brightness = 0; contrast = 100;
     # lux = 400 --> brightness = 100; contrast = 100;
-    y = 10*sqrt(int(lux)) 
+    y = MonitorControl.SENSITIVITY*sqrt(int(lux)) 
 
     contrast = min(int(y), 100)
     brightness = min(max(0, int(y-100)), 100)
 
     if MonitorControl.BRIGHTNESS is None:
       MonitorControl.setBrightness(brightness)
-    brightnessChange = min(1, brightness-MonitorControl.BRIGHTNESS)
-    if abs(brightnessChange) > 20:
-      MonitorControl.setBrightness(brightness)
-    elif brightnessChange:
-      MonitorControl.increaseBrightness(brightnessChange)
+    else:
+      brightnessChange = brightness-MonitorControl.BRIGHTNESS
+      if abs(brightnessChange) > 15:
+        MonitorControl.setBrightness(brightness)
+      elif brightnessChange > 0:
+        MonitorControl.increaseBrightness(1)
+      elif brightnessChange < 0:
+        MonitorControl.decreaseBrightness(1)
 
     if MonitorControl.CONTRAST is None:
       MonitorControl.setContrast(contrast)
-    contrastChange = min(1, contrast-MonitorControl.CONTRAST)
-    if abs(contrastChange) > 20:
-      MonitorControl.setContrast(contrast)
-    elif contrastChange:
-      MonitorControl.increaseContrast(contrastChange)
+    else:
+      contrastChange = contrast-MonitorControl.CONTRAST
+      if abs(contrastChange) > 15:
+        MonitorControl.setContrast(contrast)
+      elif contrastChange > 0:
+        MonitorControl.increaseContrast(1)
+      elif contrastChange < 0:
+        MonitorControl.decreaseContrast(1)
 
 
 
