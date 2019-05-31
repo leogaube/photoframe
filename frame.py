@@ -602,7 +602,7 @@ display.setConfigPage('http://%s:%d/' % (settings.get('local-ip'), 7777))
 
 # Prep random
 random.seed(long(time.clock()))
-colormatch = colormatch(settings.get('colortemp-script'), min=3000, max=9500) # 2700K = Soft white, lowest we'll go
+colormatch = colormatch(settings.get('colortemp-script'), min=3500, max=9500) # 2700K = Soft white, lowest we'll go
 slideshow = slideshow(display, settings, colormatch)
 timekeeper = timekeeper(display.enable, slideshow.start)
 slideshow.setQueryPower(timekeeper.getDisplayOn)
