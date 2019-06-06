@@ -19,6 +19,7 @@ import json
 import random
 import logging
 import requests
+import threading
 
 from modules.oauth import OAuth
 from modules.helper import helper
@@ -49,6 +50,7 @@ class BaseService:
   def __init__(self, configDir, id, name, needConfig=False, needOAuth=False):
     # MUST BE CALLED BY THE IMPLEMENTING CLASS!
     self._ID = id
+    self.name = ""
     self._NAME = name
     self._OAUTH = None
 
@@ -143,7 +145,14 @@ class BaseService:
     # Normally you don't override this
     if os.path.exists(self._FILE_STATE):
       with open(self._FILE_STATE, 'r') as f:
-        self._STATE.update( json.load(f) )
+        # quick-fix
+        try:
+          loadedState = json.load(f)
+          self._STATE.update(loadedState)
+        except:
+          logging.error("unable to load old State!")
+          os.unlink(self._FILE_STATE)
+          
 
   def saveState(self):
     # Stores the state data under the unique ID for
@@ -426,6 +435,14 @@ class BaseService:
 
     return url
 
+  def getVideoUrls(self, videoInfo, recommendedSize, displaySize):
+    # Videos need to be downloaded asynchronously in the background due to big files sizes!
+    # Need to return a videoUrl, and a thumbnail url (optional: else None)
+    # You may want to use addUrlParams for thumbnail image
+    # and/or add video quality params to the videoUrl based on displaySize
+
+    return videoInfo['url'], None
+
   ###[ Helpers ]######################################
 
   def selectImageFromAlbum(self, destinationDir, supportedMimeTypes, displaySize, randomize):
@@ -468,29 +485,37 @@ class BaseService:
         continue
 
       filename = os.path.join(destinationDir, image['id'])
-      if CacheManager.useCachedImage(filename):
+      if CacheManager.useCachedImage(filename, image['mimetype']):
         if image['mimetype'] is None:
           image['mimetype'] = helper.getMimeType(filename)
-        return {'id': image['id'], 'mimetype': image['mimetype'], 'source': image['source'], 'error': None}
+        return {'id': image['id'], 'mimetype': image['mimetype'], 'source': image['source'], 'asyncRequest': None, 'error': None}
 
       # you should implement 'addUrlParams' if the provider allows 'width' / 'height' parameters!
       recommendedSize = self.calcRecommendedSize(image['size'], displaySize)
-      url = self.addUrlParams(image['url'], recommendedSize, displaySize)
+      asyncRequest = None
+      if image['mimetype'] is not None and image['mimetype'].startswith('video'):
+        asyncUrl, url = self.getVideoUrls(image, recommendedSize, displaySize)
+        asyncRequest = threading.Thread(target=self.requestUrl, args=(asyncUrl,), kwargs={'destination':filename})
+        asyncRequest.daemon = True
+        asyncRequest.start()
+        if url is None:
+          return {'id': image['id'], 'mimetype': image['mimetype'], 'source': image['source'], 'asyncRequest': asyncRequest, 'error': None}
+        filename += "_tmb"
+      else:
+        url = self.addUrlParams(image['url'], recommendedSize, displaySize)
 
-      try:
-        result = self.requestUrl(url, destination=filename)
-      except requests.exceptions.RequestException as e:
-        # catch any exception caused by malformed url, unstable internet connection, ... that would otherwise break the entire photoframe
-        logging.debug(str(e))
+      result = self.requestUrl(url, destination=filename)
+      if result is None:
         if helper.getIP() is None:
           return {'id': None, 'mimetype': None, 'source': None, 'error': "No internet connection!"}
         return {'id': None, 'mimetype': None, 'source': url, 'error': "Unable to download image!\nServer might be unavailable or URL could be broken:\n%s" % url}
-      if result['status'] == 200:
+      elif result['status'] != 200:
+        return {'id': None, 'mimetype': None, 'source': None, 'error': "%d: Unable to download %s!" % (result['status'], 'image/video' if image['mimetype'] is None else image['mimetype'].split("/")[0])}
+      else:
+        # No Error
         if image['mimetype'] is None:
           image['mimetype'] = result['mimetype']
-        return {'id': image['id'], 'mimetype': image['mimetype'], 'source': image['source'], 'error': None}
-      else:
-        return {'id': None, 'mimetype': None, 'source': None, 'error': "%d: Unable to download image!" % result['status']}
+        return {'id': image['id'], 'mimetype': image['mimetype'], 'source': image['source'], 'asyncRequest': asyncRequest, 'error': None}
 
     self.resetIndices()
     return None
@@ -531,10 +556,15 @@ class BaseService:
       # Use OAuth path
       result = self._OAUTH.request(url, destination, params, data=data, usePost=usePost)
     else:
-      if usePost:
-        r = requests.post(url, params=params, json=data)
-      else:
-        r = requests.get(url, params=params)
+      try:
+        if usePost:
+          r = requests.post(url, params=params, json=data)
+        else:
+          r = requests.get(url, params=params, stream=True)
+      except requests.exceptions.RequestException as e:
+        # catch any exception caused by malformed url, unstable internet connection, ... that would otherwise break the entire photoframe
+        logging.debug(str(e))
+        return None
 
       result['status'] = r.status_code
       result['mimetype'] = None
@@ -550,6 +580,8 @@ class BaseService:
         with open(destination, 'wb') as f:
           for chunk in r.iter_content(chunk_size=1024):
             f.write(chunk)
+            if self.name == "CANCEL":
+              break
     return result
 
   def calcRecommendedSize(self, imageSize, displaySize):

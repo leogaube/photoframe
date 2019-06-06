@@ -1,0 +1,4 @@
+sudo apt install omxplayer
+sudo apt install pip
+sudo apt install libdbus-glib-1-dev dbus libdbus-1-dev
+sudo pip install omxplayer-wrapper

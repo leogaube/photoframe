@@ -59,7 +59,9 @@ class slideshow:
         'image/jpeg',
         'image/png',
         'image/gif',
-        'image/bmp'
+        'image/bmp', 
+        'video/mp4', 
+        'video/avi'
         # HEIF to be added once I get ImageMagick running with support
     ]
 
@@ -135,6 +137,7 @@ class slideshow:
         self.skipPreloadedImage = True
         self.imageOnScreen = False
         self.display.clear()
+        self.display.killVideo()
       self.cleanConfig = False
 
     if self.doControl == "nextImage":
@@ -212,7 +215,7 @@ class slideshow:
 
   def process(self, filename):
     imageSizing = self.settings.getUser('imagesizing')
-    if imageSizing == None or imageSizing == "none":
+    if imageSizing is None or imageSizing == "none":
       return self._colormatch(filename)
     if imageSizing == 'blur':
       filenameProcessed = helper.makeFullframe(filename, self.settings.getUser('width'), self.settings.getUser('height'))
@@ -225,18 +228,54 @@ class slideshow:
   def delayNextImage(self, time_process):
     # Delay before we show the image (but take processing into account)
     # This should keep us fairly consistent
-    delay = self.settings.getUser('interval')
-    if time_process < delay and self.imageOnScreen:
-      self.delayer.wait(delay - time_process)
+    # if current file is a video --> wait for video to end!
+    if not self.imageOnScreen:
+      pass
+    elif self.imageMime is not None and self.imageMime.startswith('video'):
+      self.delayer.wait()
+      self.display.killVideo()
+    else:
+      delay = self.settings.getUser('interval')
+      if time_process < delay:
+        self.delayer.wait(delay - time_process)
     self.delayer.clear()
+
+  def waitForAsyncRequest(self, filename, image, mimetype, videoId, request):
+    if request is None and mimetype.startswith("image"):
+      return image
+
+    if os.path.isfile(image):
+      self.display.image(image)
+    else:
+      self.display.message("No video thumbnail available!")
+
+    if request is not None and request.is_alive():
+      while request.is_alive():
+        if self.delayer.is_set():
+          request.name = "CANCEL"
+          logging.info("CANCEL")
+          self.services.memoryRemember(videoId)
+          self.skipPreloadedImage = True
+          break
+        request.join(timeout=1)
+
+    if helper.getImageSize(filename, mimetype=mimetype) is None:
+      self.display.message("video currupted!")
+      self.skipPreloadedImage = True
+      self.delayer.set()
+      time.sleep(1)
+    return filename
 
   def showPreloadedImage(self, filename, mimetype, imageId):
     if not self.skipPreloadedImage:
-      if not os.path.isfile(filename):
-        logging.warning("Trying to show image '%s', but file does not exist!"%filename)
-        self.delayer.set()
-        return
-      self.display.image(filename)
+      if mimetype.startswith('image'):
+        if not os.path.isfile(filename):
+          logging.warning("Trying to show image '%s', but file does not exist!"%filename)
+          self.delayer.set()
+          return
+        self.display.image(filename)
+      else:
+        self.display.video(filename, self.delayer.set, zoom=self.settings.getUser('imagesizing') == "zoom")
       self.imageCurrent = filename
       self.imageMime = mimetype
       self.imageOnScreen = True
@@ -280,13 +319,14 @@ class slideshow:
         continue
 
       filenameOriginal = os.path.join(cacheFolder, result["id"])
-      filenameProcessed = self.process(filenameOriginal)
-      if filenameProcessed is None:
+      filename = self.process(filenameOriginal + ("_tmb" if result["mimetype"].startswith("video") else ""))
+      if filename is None:
         continue
 
       time_process = time.time() - time_process
       self.delayNextImage(time_process)
+      filename = self.waitForAsyncRequest(filenameOriginal, filename, result["mimetype"], result["id"], result["asyncRequest"])
       self.handleEvents()
-      self.showPreloadedImage(filenameProcessed, result["mimetype"], result["id"])
+      self.showPreloadedImage(filename, result["mimetype"], result["id"])
 
     self.thread = None

@@ -9,6 +9,7 @@ put ../modules/settings.py
 put ../modules/servicemanager.py
 put ../modules/colormatch.py
 put ../modules/timekeeper.py
+put ../modules/oauth.py
 put ../modules/cachemanager.py
 put ../modules/joystick.py
 put ../modules/ddcutil.py

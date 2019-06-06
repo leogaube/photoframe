@@ -63,6 +63,8 @@ class OAuth:
 					else:
 						result = auth.get(uri, stream=stream, params=params)
 					if result is not None:
+						if result.status_code == 403:
+							raise TokenExpiredError()
 						break
 				except TokenExpiredError as e:
 					auth = self.getSession(True)

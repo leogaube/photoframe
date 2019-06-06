@@ -130,17 +130,22 @@ class helper:
 			return False
 		return True
 		
-
 	@staticmethod
-	def getImageSize(filename):
+	def getImageSize(filename, mimetype=None):
 		if not os.path.isfile(filename):
 			return None
 
 		with open(os.devnull, 'wb') as void:
-			try:
-				output = subprocess.check_output(['/usr/bin/identify', filename], stderr=void)
-			except:
-				return None
+				try:
+					if mimetype is None or mimetype.startswith("image"):
+						output = subprocess.check_output(['/usr/bin/identify', filename], stderr=void)
+					else:
+						p = subprocess.Popen(['omxplayer ' + filename + ' -i'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+						output = p.communicate()[1]
+				except Exception as e:
+					logging.info(e)
+					time.sleep(100)
+					return None
 
 		m = re.search('([1-9][0-9]*)x([1-9][0-9]*)', output)
 		if m is None or m.groups() is None or len(m.groups()) != 2:

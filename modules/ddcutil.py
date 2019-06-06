@@ -23,7 +23,7 @@ class MonitorControl:
   BRIGHTNESS = None
   CONTRAST = None
 
-  SENSITIVITY = 2.
+  SENSITIVITY = 10.
 
   @staticmethod
   def isDDCinstalled():
@@ -43,7 +43,7 @@ class MonitorControl:
 
   @staticmethod
   def increaseSensitivity():
-    if MonitorControl.SENSITIVITY < 5:
+    if MonitorControl.SENSITIVITY < 15.:
       MonitorControl.SENSITIVITY += 0.1
     return MonitorControl.SENSITIVITY
 

@@ -54,14 +54,20 @@ class CacheManager:
     return "%dB" % size
 
   @staticmethod
-  def useCachedImage(filename):
+  def useCachedImage(filename, mimetype):
     # check if ImageMagick can determine the imageSize
     # otherwise the image is probably currupted and should not be used anymore
-    if helper.getImageSize(filename) is not None:
-      logging.debug("using cached image: '%s'" % filename)
-      return True
-    elif os.path.isfile(filename):
-      logging.debug("Deleting currupted (cached) image: %s" % filename)
+    # use omxplayer to decode videos
+    if mimetype is not None:
+      if helper.getImageSize(filename, mimetype=mimetype) is not None:
+        logging.debug("using cached %s: '%s'" % (mimetype.split("/")[0], filename))
+        return True
+    else:
+      if helper.getImageSize(filename, mimetype="image/") or helper.getImageSize(filename, mimetype="video/"):
+        return True
+
+    if os.path.isfile(filename):
+      logging.debug("Deleting currupted cached file: %s" % filename)
       os.unlink(filename)
     return False
 

@@ -1,3 +1,7 @@
-cd /root/photoframe
 sudo service frame stop
-sudo ./frame.py --debug
+sudo netstat -nlp | grep 7777 | grep -Eo '[0-9]{1,5}/' | grep -Eo '[0-9]{1,5}'
+retVal=$?
+if [ $retVal -eq 0 ]; then
+    sudo kill $(sudo netstat -nlp | grep 7777 | grep -Eo '[0-9]{1,5}/' | grep -Eo '[0-9]{1,5}' | awk '{print $1}')
+fi
+sudo /bin/bash /root/photoframe/photoframe.sh

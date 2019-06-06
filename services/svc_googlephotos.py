@@ -320,6 +320,9 @@ class GooglePhotos(BaseService):
 
   def addUrlParams(self, url, recommendedSize, _displaySize):
     return url + "=w" + str(recommendedSize["width"]) + "-h" + str(recommendedSize["height"])
+
+  def getVideoUrls(self, videoInfo, recommendedSize, displaySize):
+    return videoInfo['url'] + '=dv', self.addUrlParams(videoInfo['url'], recommendedSize, displaySize)
     
 
 

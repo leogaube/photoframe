@@ -23,7 +23,7 @@ import debug
 
 from sysconfig import sysconfig
 
-from threading import Thread
+from omxplayer.player import OMXPlayer
 
 class display:
   def __init__(self, use_emulator=False, emulate_width=1280, emulate_height=720):
@@ -37,8 +37,14 @@ class display:
     self.xoffset = 0
     self.yoffset = 0
     self.url = None
+    self.videoPlayer = None
     if self.emulate:
       logging.info('Using framebuffer emulation')
+
+  def killVideo(self):
+    if self.videoPlayer is not None:
+      self.clear()
+      self.videoPlayer.quit()
 
   def setConfigPage(self, url):
     self.url = url
@@ -215,6 +221,25 @@ class display:
     ]
 
     self._to_display(args)
+
+  def video(self, filename, showNextImg, zoom=False):
+    def onVidCompletion(player, exit_code):
+      self.videoPlayer = None
+      if exit_code == 0:
+        showNextImg()
+  
+    if not self.enabled:
+      logging.debug('Don\'t bother, display is off')
+      return
+
+    args = ['--no-osd', '--no-keys']
+    if zoom:
+      args.extend(['--aspect-mode', 'fill'])
+    
+    self.killVideo()
+    self.videoPlayer = OMXPlayer(filename, args=args)
+    self.videoPlayer.exitEvent = onVidCompletion
+    logging.getLogger("omxplayer").setLevel(logging.CRITICAL)
 
   def image(self, filename):
     if not self.enabled:
