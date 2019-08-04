@@ -6,6 +6,7 @@ put ../modules/helper.py
 put ../modules/slideshow.py
 put ../modules/display.py
 put ../modules/settings.py
+put ../modules/cachemanager.py
 
 cd ..
 cd services

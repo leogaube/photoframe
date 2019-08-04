@@ -455,15 +455,11 @@ class BaseService:
       # a provider-specific implementation for 'getImagesFor' is obligatory!
       images = self.getImagesFor(keyword)
       if images is None:
-<<<<<<< HEAD
-        return {'id': None, 'mimetype': None, 'source': None, 'error': 'You haven\'t implemented "getImagesFor" yet'}
-=======
         logging.warning('Function returned None, this is used sometimes when a temporary error happens. Still logged')
         self.imageIndex = 0
         continue
       if len(images) > 0 and 'error' in images[0]:
         return images[0]
->>>>>>> 9dcea99c4b8230fbc61c290ca3b881adef5709a1
       self._STATE["_NUM_IMAGES"][keyword] = len(images)
       if len(images) == 0:
         self.imageIndex = 0
