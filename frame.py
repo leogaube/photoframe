@@ -72,7 +72,7 @@ if cmdline.emulate:
 if cmdline.basedir is not None:
   newpath = cmdline.basedir + '/'
   logging.info('Altering basedir to %s', newpath)
-  settings().reassign(newpath)
+  settings().reassignBase(newpath)
 
 void = open(os.devnull, 'wb')
 
@@ -200,12 +200,21 @@ def debug_logfile(all=False):
     suffix = '(size of logfile %d bytes, created %s)' % (stats.st_size, datetime.datetime.fromtimestamp(stats.st_ctime).strftime('%c'))
     return (title, lines, suffix)
 
+
+def debug_version():
+    title = 'Running version'
+    lines = subprocess.check_output('git log HEAD~1..HEAD ; echo "" ; git status', shell=True)
+    if lines:
+      lines = lines.splitlines()
+    return (title, lines, None)
+
 @app.route('/debug', methods=['GET'])
 def show_logs():
   # Special URL, we simply try to extract latest 100 lines from syslog
   # and filter out frame messages. These are shown so the user can
   # add these to issues.
   report = []
+  report.append(debug_version())
   report.append(debug_logfile(False))
   report.append(debug_logfile(True))
   report.append(debug_stacktrace())
@@ -269,7 +278,7 @@ def cfg_keyvalue(key, value):
       settings.setUser('width',  width)
       settings.setUser('height', height)
       display.enable(True, True)
-      CacheManager.empty(settings.get("cachefolder"))
+      CacheManager.empty(settings.CACHEFOLDER)
     if key in ['display-on', 'display-off']:
       timekeeper.setConfiguration(settings.getUser('display-on'), settings.getUser('display-off'))
     if key in ['autooff-lux', 'autooff-time']:
@@ -337,7 +346,7 @@ def cfg_rotation(orient):
   else:
     if orient >= 0 and orient < 360:
       sysconfig.setDisplayOrientation(orient)
-      CacheManager.empty(settings.get("cachefolder"))
+      CacheManager.empty(settings.CACHEFOLDER)
       return jsonify({'rotation' : sysconfig.getDisplayOrientation()})
   abort(500)
 

@@ -112,4 +112,4 @@ ENV/
 .mypy_cache/
 
 # from developer leogaube
-*.img
+/useful_commands
