@@ -221,6 +221,24 @@ $("#reset").click(function() {
   }
 });
 
+$("#clearCache").click(function () {
+  if (confirm("Are you sure you want to REMOVE ALL CACHED IMAGES on your device?")) {
+    $.ajax({
+      url: "/maintenance/clearCache"
+    }).done(function () {
+    });
+  }
+});
+
+$("#forgetMemory").click(function () {
+  if (confirm("Are you sure you want to FORGET ALL IMAGES that have already been displayed?")) {
+    $.ajax({
+      url: "/maintenance/forgetMemory"
+    }).done(function () {
+    });
+  }
+});
+
 $("#debug").click(function() {
   location = "/debug";
 });
