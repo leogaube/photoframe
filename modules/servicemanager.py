@@ -28,7 +28,7 @@ from modules.helper import helper
 class ServiceManager:
   def __init__(self, settings):
     self._SETTINGS = settings
-    svc_folder = os.path.join(settings.CONFIGFOLDER, 'services')
+    svc_folder = os.path.join(settings.CONFIGSFOLDER, settings.getUser('configName'), 'services')
     if not os.path.exists(svc_folder):
       os.mkdir(svc_folder)
 

@@ -126,6 +126,24 @@
 	</div>
 </div>
 <br>
+<div class="settings">
+	<div>
+		Configurations
+	</div>
+	<div>
+		Current Configuration
+		<select name="currentConfig">
+			{{#select configs.status}}
+			{{#each configs.configs}}
+			<option value="{{this}}">{{this}}
+			</option>
+			{{/each}}
+			{{/select}}
+		</select>
+	</div>
+	<button id="newConfig">New Config</button>
+</div>
+<br>
 {{#if service-defined}}
 {{#each service-defined}}
 <div  class="settings">

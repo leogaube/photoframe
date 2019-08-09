@@ -31,6 +31,7 @@ import argparse
 import shutil
 import traceback
 import re
+from multiprocessing import Process
 
 from modules.remember import remember
 from modules.shutdown import shutdown
@@ -86,6 +87,17 @@ if not os.path.exists(settings.CONFIGFOLDER):
 elif not os.path.isdir(settings.CONFIGFOLDER):
   logging.error('%s isn\'t a folder, cannot start', settings.CONFIGFOLDER)
   sys.exit(255)
+
+if not os.path.exists(settings.CONFIGSFOLDER):
+  try:
+    os.mkdir(settings.CONFIGSFOLDER)
+  except:
+    logging.exception('Unable to create configs directory, cannot start')
+    sys.exit(255)
+elif not os.path.isdir(settings.CONFIGSFOLDER):
+  logging.error('%s isn\'t a folder, cannot start', settings.CONFIGSFOLDER)
+  sys.exit(255)
+
 
 import requests
 from requests_oauthlib import OAuth2Session
@@ -362,6 +374,18 @@ def cfg_reset(cmd):
     # Reboot
     subprocess.call(['/sbin/reboot'], stderr=void);
     return jsonify({'reset': True})
+  elif cmd == 'restart':
+
+    #killFlask = request.environ.get('werkzeug.server.shutdown')
+    #killFlask()
+    # restart with same arguments# ...
+    logging.info("hi")
+    server.terminate()
+    server.join()
+    logging.info("ho")
+    #os.execl('/bin/sh', '/home/leo/info.sh')
+    os.execv(__file__, sys.argv)
+    return jsonify({'restart': True})
   elif cmd == 'reboot':
     subprocess.call(['/sbin/reboot'], stderr=void);
     return jsonify({'reboot' : True})
@@ -416,6 +440,11 @@ def cfg_details(about):
     return jsonify({'sensor' : colormatch.hasSensor()})
   elif about == 'display':
     return jsonify({'display':display.isEnabled()})
+  elif about == 'config':
+    result = {}
+    result['configurations'] = settings.getUser('configurations')
+    result['status'] = settings.getUser('currentConfig')
+    return result
 
   abort(404)
 
@@ -552,6 +581,39 @@ def services_operations(action):
 
   abort(500)
 
+@app.route('/config/<action>',  methods=['GET', 'POST'])
+@auth.login_required
+def config_operations(action):
+  j = request.json
+  if action == 'list':
+    result = {}
+    result['configs'] = os.listdir(settings.CONFIGSFOLDER)
+    result['status'] = settings.getUser('configName')
+    logging.info(settings.getUser('configName'))
+    return jsonify(result)
+  if action == 'add' and j is not None:
+    if 'name' in j and 'clone' in j:
+      settings.save()
+      if j['clone'] == True:
+        settings.cloneConfig(j["name"])
+      settings.newConfig(j["name"])
+      settings.save()
+
+      return jsonify({'status': 'Done'})
+  if action == 'remove' and j is not None:
+    if 'name' in j:
+      pass
+      #services.deleteService(j['id'])
+      #slideshow.trigger()  # Always trigger since we don't know who was on-screen
+      #return jsonify({'status': 'Done'})
+  if action == 'switch' and j is not None:
+    if 'name' in j:
+      settings.save()
+      settings.switch(j['name'])
+      return jsonify({'status': 'Done'})
+
+  abort(500)
+
 @app.route('/control/<cmd>')
 @auth.login_required
 def control_slideshow(cmd):
@@ -629,6 +691,10 @@ if __name__ == "__main__":
   os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
   app.secret_key = os.urandom(24)
   slideshow.start()
-  app.run(debug=False, port=cmdline.port, host=cmdline.listen )
+  #app.run(debug=False, port=cmdline.port, host=cmdline.listen )
+
+  server = Process(target=app.run, kwargs={'debug': False, 'port': cmdline.port, 'host': cmdline.listen})
+  server.start()
+
 
 sys.exit(0)

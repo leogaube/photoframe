@@ -37,6 +37,11 @@ function rebootWatch() {
   setTimeout(document.location.reload.bind(document.location), 60000);
 }
 
+function restartWatch() {
+  $(document.body).html('<h1>Restarting</h1>')
+  setTimeout(document.location.reload.bind(document.location), 10000);
+}
+
 // Refresh image every 30s
 function reloadScreen() {
   $('#screen').attr('src', "/details/current?" + new Date().getTime())
@@ -165,6 +170,21 @@ $("select[name=tvservice]").change(function() {
   });
 });
 
+$("select[name=currentConfig]").change(function () {
+  $.ajax({
+    url: "/config/switch",
+    type: "POST",
+    data: JSON.stringify({ "name": $("select[name=currentConfig]").val() }),
+    contentType: "application/json; charset=utf-8",
+    dataType: "json"
+  }).done(function (data) {
+    $.ajax({
+      url: "/maintenance/restart"
+    });
+    restartWatch();
+  });
+});
+
 $("select[name=timezone]").change(function() {
   $.ajax({
     url:"/setting/timezone/" + encodeURIComponent($(this).val().replace('/', '+')),
@@ -276,6 +296,24 @@ $("#shutdown").click(function() {
       url:"/maintenance/shutdown"
     });
     $(document.body).html('<h1>Powering off</h1>')
+  }
+});
+
+$("#newConfig").click(function () {
+  var name = prompt("Please give your new configuration a name") 
+  name = name.trim();
+  if (name == '')
+    alert('Aborted');
+  else {
+    $.ajax({
+      url: "/config/add",
+      type: "POST",
+      data: JSON.stringify({ "name": name, "clone": true }),
+      contentType: "application/json; charset=utf-8",
+      dataType: "json"
+    }).done(function (data) {
+      location.reload();
+    });
   }
 });
 

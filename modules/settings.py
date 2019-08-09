@@ -14,12 +14,14 @@
 # along with photoframe.  If not, see <http://www.gnu.org/licenses/>.
 #
 import os
+import shutil
 import json
 import logging
 import random
 
 class settings:
   CONFIGFOLDER = '/root/photoframe_config'
+  CONFIGSFOLDER = '/root/photoframe_config/configs'
   CONFIGFILE = '/root/photoframe_config/settings.json'
   COLORMATCH = '/root/photoframe_config/colortemp.sh'
 
@@ -59,6 +61,7 @@ class settings:
 
   def userDefaults(self):
     self.settings['cfg'] = {
+      'configName': 'default',
       'width' : 1920,
       'height' : 1080,
       'depth' : 32,
@@ -121,7 +124,17 @@ class settings:
   def save(self):
     with open(settings.CONFIGFILE, 'w') as f:
       json.dump(self.settings, f)
+    
+    dst = os.path.join(self.CONFIGSFOLDER, self.settings['cfg']['configName'])
+    if not os.path.exists(dst):
+      os.mkdir(dst)
+    with open(os.path.join(dst, 'settings.json'), 'w') as f:
+      json.dump(self.settings, f)
 
+    #cleanup old config!! TODO place somewhere else 
+    if os.path.isdir(os.path.join(self.CONFIGFOLDER, "services")):
+      shutil.move(os.path.join(self.CONFIGFOLDER, "services"), dst)
+      
   def convertToNative(self, value):
     try:
       if '.' in value:
@@ -129,6 +142,25 @@ class settings:
       return int(value)
     except:
       return value
+
+  def newConfig(self, name):
+    self.settings['cfg']['configName'] = name
+    self.save()
+
+  def cloneConfig(self, name):
+    src = os.path.join(self.CONFIGSFOLDER, self.settings['cfg']['configName'])
+    dst = os.path.join(self.CONFIGSFOLDER, name)
+    shutil.copytree(src, dst)
+
+  def switch(self, name):
+    newSettingsFile = os.path.join(self.CONFIGSFOLDER, name, 'settings.json')
+    if os.path.isfile(newSettingsFile):
+      os.unlink(self.CONFIGFILE)
+      shutil.copy(newSettingsFile, self.CONFIGFILE)
+      self.userDefaults()
+      self.load()
+    else:
+      logging.error("unable to switch config: %s could not be found"%newSettingsFile)
 
   def setUser(self, key, value):
     self.settings['cfg'][key] = self.convertToNative(value)
